@@ -1,0 +1,15 @@
+# Ignorar a pasta do ambiente virtual
+venv/
+
+# Ignorar arquivos de cache e compilados
+__pycache__/
+*.pyc
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos de ambiente (se você usar .env)
+.env
+
+
+.DS_Store
