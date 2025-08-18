@@ -68,6 +68,7 @@ log/
 # Backups
 backup_*/
 **/backup_*/
+backup_*
 
 # Project-specific transient files
 profile.out
