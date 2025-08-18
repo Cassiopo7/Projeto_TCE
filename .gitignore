@@ -1,0 +1,74 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment files
+.env
+.env.*
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+pip-log.txt
+
+# Caches
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pylint.d/
+
+# Coverage / reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (in case of mixed projects)
+node_modules/
+
+# Logs
+*.log
+logs/
+log/
+
+# Local databases / data artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Docker / runtime
+*.pid
+
+# Backups
+backup_*/
+**/backup_*/
+
+# Project-specific transient files
+profile.out
+
