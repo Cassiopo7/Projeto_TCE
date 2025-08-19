@@ -79,6 +79,17 @@ else:
     with st.expander("Detalhamento do progresso (tabela)"):
         st.dataframe(df_prog.sort_values("total", ascending=False), use_container_width=True)
 
+with st.expander("📘 Diagrama MER (modelo de dados)"):
+    import os
+    path_svg = os.path.join("docs", "mer.svg")
+    path_png = os.path.join("docs", "mer.png")
+    if os.path.exists(path_svg):
+        st.image(path_svg, use_container_width=True)
+    elif os.path.exists(path_png):
+        st.image(path_png, use_container_width=True)
+    else:
+        st.info("Coloque o arquivo docs/mer.svg ou docs/mer.png para visualizar o diagrama aqui.")
+
 st.header("2️⃣ Completude por Período e Pendências")
 col1, col2, col3 = st.columns(3)
 with col1:
