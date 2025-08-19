@@ -12,6 +12,7 @@ from etl_interface import (
     get_progresso_tipos_no_periodo,
     ping_db,
     ping_api,
+    get_ultima_execucao_por_tipo,
 )
 
 st.set_page_config(page_title="Painel ETL - Dossiê", layout="wide")
@@ -39,6 +40,9 @@ st.title("📊 Painel de Monitoramento - ETL Dossiê")
 
 # Sidebar: atualização e informações
 st.sidebar.subheader("Atualização")
+refresh_sec = st.sidebar.slider("Autoatualização (s)", 0, 300, 0, help="0 desativa")
+if refresh_sec:
+    st.sidebar.autorefresh(interval=refresh_sec * 1000, key="autorefresh")
 if st.sidebar.button("🔄 Atualizar agora"):
     load_progresso_df.clear()
     load_funcoes.clear()
@@ -92,7 +96,13 @@ colp1, colp2, colp3, colp4 = st.columns(4)
 colp1.metric("Municípios (total)", f"{prog['total_municipios']}")
 colp2.metric("Carregados", f"{prog['carregados']}")
 colp3.metric("Restantes", f"{prog['restante']}")
-colp4.metric("Completude", f"{prog['percentual']:.1f}%")
+alerta = "🟩 OK"
+if prog['percentual'] < 50:
+    alerta = "🟥 Baixa"
+elif prog['percentual'] < 80:
+    alerta = "🟨 Média"
+
+colp4.metric("Completude", f"{prog['percentual']:.1f}%", help=f"Status: {alerta}")
 
 # Barra de progresso visual
 st.progress(min(int(prog['percentual']), 100))
@@ -105,6 +115,20 @@ with st.expander("Progresso por tipo no período"):
         st.dataframe(df_tipo_periodo, use_container_width=True)
     else:
         st.caption("Sem registros no período.")
+
+# Última execução por tipo
+with st.expander("Última execução por tipo"):
+    df_last = pd.DataFrame(get_ultima_execucao_por_tipo())
+    if not df_last.empty:
+        if 'ultima_execucao' in df_last.columns:
+            try:
+                df_last['ultima_execucao'] = pd.to_datetime(df_last['ultima_execucao'])
+                df_last = df_last.sort_values("ultima_execucao", ascending=False)
+            except Exception:
+                pass
+        st.dataframe(df_last, use_container_width=True)
+    else:
+        st.caption("Sem informação de última execução.")
 
 if st.button("🔍 Mostrar Municípios Pendentes"):
     with st.spinner("Consultando pendências..."):

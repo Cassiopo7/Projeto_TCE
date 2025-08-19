@@ -115,3 +115,67 @@ def get_progresso_tipos_no_periodo(ano: int, mes: int):
             {"ano": ano, "mes": mes},
         ).fetchall()
         return [{"tipo_dado": r[0], "municipios": int(r[1])} for r in result]
+
+
+def get_ultima_execucao_por_tipo():
+    """
+    Retorna a última execução por tipo com base em uma coluna de timestamp em controle_carga.
+    Detecta dinamicamente a coluna entre nomes comuns ou qualquer coluna timestamp.
+    """
+    engine = get_engine()
+    with engine.connect() as conn:
+        # Tentar nomes conhecidos primeiro
+        candidatos = [
+            "updated_at",
+            "created_at",
+            "processado_em",
+            "executado_em",
+            "data_execucao",
+        ]
+        col_encontrada = None
+        for nome in candidatos:
+            r = conn.execute(
+                text(
+                    """
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'controle_carga' AND column_name = :c
+                    """
+                ),
+                {"c": nome},
+            ).fetchone()
+            if r:
+                col_encontrada = nome
+                break
+
+        # Se não encontrou, pegar qualquer coluna timestamp
+        if not col_encontrada:
+            r = conn.execute(
+                text(
+                    """
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'controle_carga' 
+                      AND data_type LIKE 'timestamp%'
+                    LIMIT 1
+                    """
+                )
+            ).fetchone()
+            if r:
+                col_encontrada = r[0]
+
+        if not col_encontrada:
+            return []
+
+        result = conn.execute(
+            text(
+                f"""
+                SELECT tipo_dado, MAX({col_encontrada}) AS ultima
+                FROM controle_carga
+                GROUP BY tipo_dado
+                ORDER BY tipo_dado
+                """
+            )
+        ).fetchall()
+        return [
+            {"tipo_dado": row[0], "ultima_execucao": row[1].isoformat() if row[1] else None}
+            for row in result
+        ]
