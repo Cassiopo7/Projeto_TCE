@@ -7,6 +7,11 @@ from etl_interface import (
     get_progresso_por_tipo,
     get_municipios_pendentes,
     get_funcoes_etl_disponiveis,
+    get_total_municipios,
+    get_progresso_por_periodo,
+    get_progresso_tipos_no_periodo,
+    ping_db,
+    ping_api,
 )
 
 st.set_page_config(page_title="Painel ETL - Dossiê", layout="wide")
@@ -41,6 +46,14 @@ if st.sidebar.button("🔄 Atualizar agora"):
 
 st.sidebar.caption(f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
 
+# Sidebar: Saúde da pipeline
+st.sidebar.subheader("Saúde da Pipeline")
+col_ok1, col_ok2 = st.sidebar.columns(2)
+with col_ok1:
+    st.metric("DB", "OK" if ping_db() else "ERRO")
+with col_ok2:
+    st.metric("API", "OK" if ping_api() else "ERRO")
+
 st.header("1️⃣ Progresso por Tipo de Dado")
 df_prog = load_progresso_df()
 if df_prog.empty:
@@ -62,7 +75,7 @@ else:
     with st.expander("Detalhamento do progresso (tabela)"):
         st.dataframe(df_prog.sort_values("total", ascending=False), use_container_width=True)
 
-st.header("2️⃣ Verificar Municípios Pendentes")
+st.header("2️⃣ Completude por Período e Pendências")
 col1, col2, col3 = st.columns(3)
 with col1:
     tipo = st.selectbox("Tipo de dado", load_funcoes(), index=0 if load_funcoes() else None)
@@ -72,6 +85,26 @@ with col3:
     mes = st.number_input("Mês", min_value=1, max_value=12, value=max(1, datetime.now().month - 1))
 
 filtro_texto = st.text_input("Filtrar municípios (contém)", "")
+
+prog = get_progresso_por_periodo(tipo, int(ano), int(mes))
+total_muns = get_total_municipios()
+colp1, colp2, colp3, colp4 = st.columns(4)
+colp1.metric("Municípios (total)", f"{prog['total_municipios']}")
+colp2.metric("Carregados", f"{prog['carregados']}")
+colp3.metric("Restantes", f"{prog['restante']}")
+colp4.metric("Completude", f"{prog['percentual']:.1f}%")
+
+# Barra de progresso visual
+st.progress(min(int(prog['percentual']), 100))
+
+# Tabela por tipo no período
+with st.expander("Progresso por tipo no período"):
+    df_tipo_periodo = pd.DataFrame(get_progresso_tipos_no_periodo(int(ano), int(mes)))
+    if not df_tipo_periodo.empty:
+        df_tipo_periodo["percentual"] = (df_tipo_periodo["municipios"] / total_muns * 100).round(1)
+        st.dataframe(df_tipo_periodo, use_container_width=True)
+    else:
+        st.caption("Sem registros no período.")
 
 if st.button("🔍 Mostrar Municípios Pendentes"):
     with st.spinner("Consultando pendências..."):
