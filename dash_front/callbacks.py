@@ -109,7 +109,7 @@ def register_callbacks(app):
             """
 
             # Backend URL para geração de PDF
-            backend_url = "http://localhost:8050/generate-pdf"
+            backend_url = "http://localhost:8040/generate-pdf"
 
             try:
                 response = requests.post(backend_url, json={"html": full_html})
