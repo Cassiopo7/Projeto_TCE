@@ -67,8 +67,8 @@ def criar_grafico(
 
 
 # Função genérica para consultas e transformação
-def consultar_dados(municipio_id, consulta, id_vars, value_vars, var_name, value_name):
-    dados = query_db(consulta.format(municipio_id=municipio_id))
+def consultar_dados(municipio_id, ano, consulta, id_vars, value_vars, var_name, value_name):
+    dados = query_db(consulta.format(municipio_id=municipio_id, ano=ano))
     if dados.empty:
         return None
     return dados.melt(
@@ -115,7 +115,7 @@ def render_content(municipio_id, ano):
                     SUM(distinct valor_liquidado_no_mes) as valor_liquidado,
                     SUM(distinct valor_pago_no_mes) as valor_pago
                 FROM despesa_detalhada
-                WHERE municipio_id = '{municipio_id}' AND ano = '{'" + str(ano) + "'}'
+                WHERE municipio_id = '{municipio_id}' AND ano = '{ano}'
                 GROUP BY ano,mes
                 ORDER BY ano,mes;
             """,
@@ -141,7 +141,7 @@ def render_content(municipio_id, ano):
                     mes, 
                     SUM(distinct valor_liquidado_no_mes) AS valor_liquidado
                 FROM despesa_detalhada
-                WHERE ano = '{'" + str(ano) + "'}'
+                WHERE ano = '{ano}'
                 GROUP BY ano, mes
                 ORDER BY ano, mes;
             """,
@@ -211,7 +211,7 @@ def render_content(municipio_id, ano):
 
     graficos = []
     for chave, config in consultas.items():
-        dados_long = consultar_dados(municipio_id, config["query"], config["id_vars"], config["value_vars"], config["var_name"], config["value_name"])
+        dados_long = consultar_dados(municipio_id, ano, config["query"], config["id_vars"], config["value_vars"], config["var_name"], config["value_name"])
         if dados_long is None:
             return html.Div(f"Sem dados disponíveis para {chave.replace('_', ' ')}.", className="error-message")
         grafico = criar_grafico(dados_long, **config["grafico"])
