@@ -247,6 +247,21 @@ DB_PASSWORD=postgres
 - **Layout**: Modificar `tce_front/layout.py`
 - **Queries**: Ajustar em `tce_front/utils/database.py`
 
+### **Variáveis de Ambiente (.env)**
+```bash
+# Arquivo .env opcional na raiz do projeto
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=tce
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+DASHBOARD_PORT_FRONTEND=8040
+DASHBOARD_PORT_BACKEND=8050
+CACHE_TTL_SECONDS=60
+ETL_TIMEOUT_SECONDS=300
+```
+
 ---
 
 ## 📈 **Monitoramento e Métricas**
