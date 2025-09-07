@@ -72,4 +72,24 @@ backup_*
 
 # Project-specific transient files
 profile.out
+*.out
+*.log
+*.tmp
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database files (if any)
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# OS specific
+.DS_Store
+Thumbs.db
+._*
 

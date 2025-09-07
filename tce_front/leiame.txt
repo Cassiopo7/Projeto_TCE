@@ -1,2 +1,0 @@
-rsync -av --exclude=myvenv /Users/cassiopinheiro/Documents/Projetos/popos/docs/mc/nagel/dash_dossie/ cassio@206.42.25.89:~/dash_dossie/
-docker build -t projetonagel .
