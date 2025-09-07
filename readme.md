@@ -155,11 +155,22 @@ python3 run_project.py
 ```
 
 **O que o script faz:**
-- ✅ Verifica status da base de dados
-- 🔄 Atualiza dados se necessário (ETL automático)
-- 📊 Abre dashboard de monitoramento (porta 8050)
-- 📈 Abre dashboard de visualização (porta 8040)
-- 🛑 Gerencia processos automaticamente
+- ✅ Verifica conexão com banco de dados
+- 🔍 Analisa status atual da base
+- 📊 Exibe relatório completo com estatísticas
+- 🔄 Atualiza dados automaticamente se necessário
+- 📈 Abre dashboard de monitoramento (porta 8050)
+- 📊 Abre dashboard de visualização (porta 8040)
+- 🛑 Gerencia processos e limpeza automática
+
+#### **Comandos Úteis do Script**
+```bash
+# Executar projeto completo
+python3 run_project.py
+
+# Ver ajuda detalhada
+python3 run_project.py --help
+```
 
 ### **Opção 2: Execução Manual**
 
@@ -320,6 +331,79 @@ python3 -c "from utils.database import get_municipios; print(len(get_municipios(
 - Compare totais entre backend e frontend
 - Verifique integridade referencial
 - Valide formatos de data e valores
+
+---
+
+## 🔧 **Solução de Problemas**
+
+### **Problemas Comuns e Soluções**
+
+#### **1. Erro: "FileNotFoundError: database/db_schema.sql"**
+```bash
+# Solução: Verificar se está executando da raiz do projeto
+pwd  # Deve mostrar o caminho para Projeto_DOSSIE
+ls -la tce_back/database/db_schema.sql  # Arquivo deve existir
+
+# Se executando ETL manualmente:
+cd tce_back
+python3 main.py
+```
+
+#### **2. Erro de Conexão com PostgreSQL**
+```bash
+# Verificar se PostgreSQL está rodando
+brew services list | grep postgresql
+
+# Iniciar PostgreSQL se necessário
+brew services start postgresql
+
+# Verificar credenciais em tce_back/config.py
+```
+
+#### **3. Erro: "Porta já em uso"**
+```bash
+# Matar processos nas portas 8040 e 8050
+lsof -ti:8040 | xargs kill -9
+lsof -ti:8050 | xargs kill -9
+```
+
+#### **4. Timeout no ETL**
+- **Causa**: Muitos municípios sendo processados
+- **Solução**: O script tem timeout de 5 minutos por padrão
+- **Ajuste**: Modificar `timeout_execucao` no script
+
+#### **5. Dados não Aparecem no Dashboard**
+```bash
+# Verificar se dados foram carregados
+cd tce_back
+python3 -c "from etl_interface import get_progresso_por_tipo; print(get_progresso_por_tipo())"
+
+# Limpar cache do frontend
+# Ctrl+F5 no navegador ou modificar filtros
+```
+
+#### **6. Ambiente Virtual com Problemas**
+```bash
+# Recriar ambiente virtual
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### **Diagnóstico Rápido**
+```bash
+# Teste completo de conectividade
+python3 -c "
+import sys
+sys.path.append('tce_back')
+from etl_interface import get_progresso_por_tipo
+from tce_front.utils.database import query_db
+
+print('Backend:', len(get_progresso_por_tipo()))
+print('Frontend:', query_db('SELECT COUNT(*) FROM municipio').iloc[0,0])
+"
+```
 
 ---
 
