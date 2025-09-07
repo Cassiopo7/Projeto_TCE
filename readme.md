@@ -89,15 +89,30 @@ Principais bibliotecas:
 
 ---
 
-## ⚙️ **Instalação e Configuração**
+## ⚙️ **Instalação Rápida**
 
-### **1. Clonagem do Repositório**
+### **Opção 1: Script Automático (Recomendado)**
+```bash
+# 1. Clonagem e configuração automática
+git clone https://github.com/Cassiopo7/Projeto_TCE.git
+cd Projeto_DOSSIE
+
+# 2. Executar setup automático (inclui PostgreSQL, venv e dependências)
+python3 run_project.py --help  # Ver instruções detalhadas
+
+# 3. Executar projeto completo
+python3 run_project.py
+```
+
+### **Opção 2: Instalação Manual**
+
+#### **1. Clonagem do Repositório**
 ```bash
 git clone https://github.com/Cassiopo7/Projeto_TCE.git
 cd Projeto_DOSSIE
 ```
 
-### **2. Configuração do Banco**
+#### **2. Configuração do Banco**
 ```bash
 # Instalar PostgreSQL (macOS)
 brew install postgresql
@@ -110,19 +125,20 @@ createdb tce
 # Editar tce_back/config.py se necessário
 ```
 
-### **3. Ambiente Virtual**
+#### **3. Ambiente Virtual (Único para todo o projeto)**
 ```bash
+# Criar venv na raiz (já criado automaticamente)
 python3 -m venv venv
 source venv/bin/activate  # Linux/macOS
 # venv\Scripts\activate   # Windows
 ```
 
-### **4. Instalação de Dependências**
+#### **4. Instalação de Dependências**
 ```bash
 pip install -r requirements.txt
 ```
 
-### **5. Configuração do Schema**
+#### **5. Configuração do Schema**
 ```bash
 cd tce_back
 python3 database/db_setup.py
@@ -132,7 +148,22 @@ python3 database/db_setup.py
 
 ## 🎮 **Como Usar**
 
-### **Executar Backend ETL**
+### **Opção 1: Execução Automática (Recomendado)**
+```bash
+# Executar projeto completo automaticamente
+python3 run_project.py
+```
+
+**O que o script faz:**
+- ✅ Verifica status da base de dados
+- 🔄 Atualiza dados se necessário (ETL automático)
+- 📊 Abre dashboard de monitoramento (porta 8050)
+- 📈 Abre dashboard de visualização (porta 8040)
+- 🛑 Gerencia processos automaticamente
+
+### **Opção 2: Execução Manual**
+
+#### **Executar Backend ETL**
 ```bash
 cd tce_back
 
@@ -145,13 +176,15 @@ python3 main.py load_despesas
 streamlit run dashboard.py
 ```
 
-### **Executar Frontend Dashboard**
+#### **Executar Frontend Dashboard**
 ```bash
 cd tce_front
 python3 app.py
 ```
 
-**Acesso**: http://localhost:8040
+### **Acesso aos Dashboards**
+- **Dashboard de Visualização**: http://localhost:8040
+- **Dashboard de Monitoramento**: http://localhost:8050
 
 ---
 
