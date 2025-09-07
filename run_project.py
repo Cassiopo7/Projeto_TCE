@@ -92,8 +92,8 @@ class ProjectRunner:
         try:
             print(f"🔄 Executando ETL: {tipo_dado}")
 
-            # Comando para executar ETL
-            cmd = [sys.executable, 'tce_back/main.py', tipo_dado]
+            # Comando para executar ETL - executa apenas o main.py sem argumentos específicos
+            cmd = [sys.executable, 'tce_back/main.py']
 
             # Executar com timeout
             result = subprocess.run(
@@ -120,37 +120,12 @@ class ProjectRunner:
             return False
 
     def atualizar_base_dados(self) -> bool:
-        """Atualiza a base de dados executando ETLS necessários."""
+        """Atualiza a base de dados executando ETL completo."""
         print("\n🔄 Iniciando atualização da base de dados...")
 
-        # Funções ETL prioritárias
-        funcoes_prioritarias = [
-            'load_municipios',
-            'load_receitas',
-            'load_despesas',
-            'load_orgaos'
-        ]
-
-        funcoes_opcionais = [
-            'load_licitacao',
-            'load_prestacao_contas',
-            'load_liquidacoes',
-            'load_notas_empenho'
-        ]
-
-        sucesso = True
-
-        # Executar funções prioritárias
-        for funcao in funcoes_prioritarias:
-            if not self.executar_etl(funcao):
-                sucesso = False
-
-        # Executar funções opcionais apenas se prioritárias foram OK
-        if sucesso:
-            for funcao in funcoes_opcionais:
-                self.executar_etl(funcao)
-
-        return sucesso
+        # O main.py executa todos os processos ETL automaticamente
+        # Vamos executá-lo uma vez para atualizar tudo
+        return self.executar_etl("completo")
 
     def iniciar_dashboard_backend(self) -> subprocess.Popen:
         """Inicia o dashboard de monitoramento do backend."""

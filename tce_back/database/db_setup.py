@@ -14,7 +14,7 @@ def setup_database():
         # Inicia uma transação
         with conn.begin():
             # Abre o arquivo SQL e lê cada instrução separadamente
-            with open("database/db_schema.sql", "r") as schema_file:
+            with open("tce_back/database/db_schema.sql", "r") as schema_file:
                 sql_commands = schema_file.read().split(";")  # Divide em comandos individuais
                 
                 # Executa cada comando individualmente, ignorando linhas vazias
