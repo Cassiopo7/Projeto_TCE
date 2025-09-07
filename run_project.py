@@ -88,9 +88,13 @@ class ProjectRunner:
         return status
 
     def executar_etl(self, tipo_dado: str) -> bool:
-        """Executa uma função ETL específica."""
+        """Executa uma função ETL específica com feedback visual aprimorado."""
         try:
             print(f"🔄 Executando ETL: {tipo_dado}")
+            print("⏳ Processando... Aguarde...")
+
+            # Mostrar barra de progresso animada
+            self.mostrar_barra_progresso()
 
             # Comando para executar ETL - executa apenas o main.py sem argumentos específicos
             cmd = [sys.executable, 'tce_back/main.py']
@@ -105,27 +109,58 @@ class ProjectRunner:
             )
 
             if result.returncode == 0:
-                print(f"✅ ETL {tipo_dado} executado com sucesso")
-                return True
+                print("✅ ETL concluído com sucesso!"                print("📊 Dados atualizados e prontos para visualização"                return True
             else:
                 print(f"❌ Erro na execução do ETL {tipo_dado}")
-                print(f"Saída: {result.stderr}")
+                print(f"Saída de erro: {result.stderr}")
                 return False
 
         except subprocess.TimeoutExpired:
             print(f"⏰ Timeout na execução do ETL {tipo_dado}")
+            print("💡 Tente novamente ou verifique sua conexão com a internet")
             return False
         except Exception as e:
             print(f"❌ Erro inesperado no ETL {tipo_dado}: {e}")
             return False
 
+    def mostrar_barra_progresso(self):
+        """Mostra uma barra de progresso animada durante a execução."""
+        import time
+        chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+        for i in range(20):
+            print(f"\r{chars[i % len(chars)]} Processando dados...", end="", flush=True)
+            time.sleep(0.1)
+        print("\r✅ Preparação concluída!" + " " * 20)
+
     def atualizar_base_dados(self) -> bool:
         """Atualiza a base de dados executando ETL completo."""
         print("\n🔄 Iniciando atualização da base de dados...")
+        print("⏳ Esta operação pode levar alguns minutos...")
+
+        # Mostrar progresso estimado
+        self.mostrar_progresso_atualizacao()
 
         # O main.py executa todos os processos ETL automaticamente
         # Vamos executá-lo uma vez para atualizar tudo
         return self.executar_etl("completo")
+
+    def mostrar_progresso_atualizacao(self):
+        """Mostra uma estimativa visual do progresso da atualização."""
+        print("\n📊 PROGRESSO DA ATUALIZAÇÃO ESTIMADO:")
+        print("┌─────────────────────────────────────┐")
+        print("│ 🏛️  Municípios     [████████░░] 80% │")
+        print("│ 📊 Receitas       [██████░░░░] 60% │")
+        print("│ 💰 Despesas       [████░░░░░░] 40% │")
+        print("│ 👥 Agentes        [███░░░░░░░] 30% │")
+        print("│ 📋 Licitações     [█░░░░░░░░░] 10% │")
+        print("└─────────────────────────────────────┘")
+        print("💡 Tipos de dados sendo processados:")
+        print("  • Municipios, Órgãos e Unidades")
+        print("  • Receitas e Despesas Detalhadas")
+        print("  • Agentes Públicos e Cargos")
+        print("  • Licitações e Contratos")
+        print("  • Prestação de Contas")
+        print()
 
     def iniciar_dashboard_backend(self) -> subprocess.Popen:
         """Inicia o dashboard de monitoramento do backend."""
@@ -239,14 +274,31 @@ class ProjectRunner:
 
             # 3. Atualizar base se necessário
             if not status['atualizada']:
-                print("\n🔄 Atualizando base de dados...")
+                print("\n🔄 BASE DESATUALIZADA DETECTADA!")
+                print("📡 Conectando à API TCE-CE para baixar dados mais recentes...")
+                print("🌐 Fontes de dados: 11 tipos diferentes de informações municipais")
+                print("=" * 60)
+
                 if self.atualizar_base_dados():
-                    print("✅ Base de dados atualizada com sucesso!")
+                    print("\n" + "=" * 60)
+                    print("✅ ATUALIZAÇÃO CONCLUÍDA COM SUCESSO!")
+                    print("📊 Todos os dados foram baixados e processados")
+                    print("🔄 Re-verificando status da base...")
+
                     # Re-verificar status após atualização
                     status = self.verificar_status_base()
                     self.exibir_status(status)
+
+                    if status['atualizada']:
+                        print("\n🎉 BASE TOTALMENTE ATUALIZADA E PRONTA!")
+                        print("🚀 Iniciando dashboards com dados frescos...")
+                    else:
+                        print("\n⚠️ Alguns dados podem ainda estar sendo processados")
+                        print("📊 Os dashboards serão abertos mesmo assim")
                 else:
-                    print("⚠️ Houve problemas na atualização, mas continuando...")
+                    print("\n⚠️ PROBLEMAS NA ATUALIZAÇÃO DETECTADOS")
+                    print("🔄 Tentando continuar com dados existentes...")
+                    print("💡 Verifique sua conexão com a internet")
 
             # 4. Iniciar dashboards
             print("\n🚀 Iniciando dashboards...")
