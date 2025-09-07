@@ -6,14 +6,15 @@ def render_content(municipio_id):
     # Consulta simplificada para resumo de agentes públicos
     agentes_publicos = query_db(f"""
         SELECT 
-            exercicio_orcamento AS ano,
-            orgao AS órgão,
-            vinculo AS vínculo,
+            ap.exercicio_orcamento AS ano,
+            o.nome_orgao AS órgão,
+            ap.codigo_vinculo AS vínculo,
             COUNT(*) AS quantidade
-        FROM vw_detalhes_agentes_publicos
-        WHERE codigo_municipio = '{municipio_id}'
-        GROUP BY exercicio_orcamento, orgao, vinculo
-        ORDER BY exercicio_orcamento, orgao;
+        FROM agentes_publicos ap
+        LEFT JOIN orgao o ON ap.codigo_orgao = o.codigo_orgao AND ap.municipio_id = o.municipio_id
+        WHERE ap.municipio_id = '{municipio_id}'
+        GROUP BY ap.exercicio_orcamento, o.nome_orgao, ap.codigo_vinculo
+        ORDER BY ap.exercicio_orcamento, o.nome_orgao;
     """)
 
     # Verificar se há dados

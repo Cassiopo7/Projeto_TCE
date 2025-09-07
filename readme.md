@@ -1,148 +1,332 @@
-Segue a documentação consolidada no formato Markdown:
+# 📊 Projeto TCE - Análise de Dados Municipais
 
-# Projeto Dash de Análise de Municípios e Integração com Banco de Dados
-
-Este projeto é uma solução integrada que utiliza **Dash** para visualização e análise de dados municipais e uma API pública para extração e armazenamento de informações em um banco de dados PostgreSQL. A aplicação é projetada para oferecer insights financeiros e comparações interativas entre municípios.
+Uma plataforma integrada para **extração, processamento e visualização** de dados financeiros municipais do Ceará, utilizando dados da API pública do TCE-CE.
 
 ---
 
-## Objetivo
+## 🎯 **Visão Geral**
 
-Fornecer uma ferramenta completa para análise de dados financeiros municipais, integrando funcionalidades de visualização interativa no frontend com um backend robusto para extração, processamento e armazenamento de dados.
+Este projeto oferece uma solução completa para análise de dados governamentais municipais, com:
 
----
-
-## Estrutura do Projeto
-
-### Frontend
-O frontend foi desenvolvido com **Dash** e organiza-se nos seguintes arquivos e diretórios:
-
-- **`app.py`**: Arquivo principal que inicia o Dash, configura o layout, callbacks e servidor.
-- **`callbacks.py`**: Controla as interações do usuário e as atualizações de layout.
-- **`layout.py`**: Define o layout principal, incluindo abas e componentes visuais.
-- **`pages/`**: Scripts específicos para renderizar cada aba:
-  - **`home.py`**: Resumo geral do município selecionado.
-  - **`despesas.py`**: Detalhes sobre despesas por órgão.
-  - **`receitas.py`**: Detalhes sobre receitas por órgão.
-  - **`pessoal.py`**: Informações sobre agentes públicos.
-  - **`comparacao.py`**: Comparação de até 20 municípios.
-- **`assets/`**: Diretório para CSS customizado.
-
-### Backend
-O backend foi desenvolvido em **Python** para consumir dados de APIs públicas e armazená-los no banco de dados PostgreSQL. Os principais componentes são:
-
-- **`database/db_setup.py`**: Configura o banco de dados, criando tabelas e índices.
-- **`database/db_config.py`**: Define as configurações de conexão com o banco.
-- **`data_extraction/api_client.py`**: Métodos genéricos para consumir APIs públicas.
-- **`data_extraction/data_loader.py`**: Métodos para carregar dados no banco.
-
-#### Métodos do Backend
-##### Métodos **GET**:
-1. **`get_all_municipios`**: Retorna todos os municípios disponíveis.
-2. **`get_receitas`**: Retorna receitas orçamentárias.
-3. **`get_despesas`**: Retorna despesas orçamentárias.
-4. **`get_agentes_publicos`**: Informações sobre agentes públicos.
-5. **`get_licitacao`**: Detalhes sobre licitações.
-6. **`get_prestacao_contas`**: Dados de prestação de contas.
-7. **`get_orgaos`**: Lista os órgãos públicos disponíveis.
-8. **`get_unidade_orcamentaria`**: Detalhes sobre unidades orçamentárias.
-9. **`get_orcamentos`**: Informações sobre orçamentos gerais.
-10. **`get_balancete_despesa_extra_orcamentaria`**: Despesas extraorçamentárias.
-11. **`get_receita_extra_orcamentaria`**: Receitas extraorçamentárias.
+- **Backend ETL**: Extração automatizada de dados via API TCE-CE
+- **Frontend Dashboard**: Interface interativa para visualização e análise
+- **Monitoramento**: Dashboard em tempo real do status da pipeline
+- **Relatórios**: Geração automática de PDFs e CSVs
 
 ---
 
-## Funcionalidades
+## 🏗️ **Arquitetura do Projeto**
 
-### Frontend
-1. **Seleção de Municípios**: Dropdown dinâmico para selecionar municípios.
-2. **Gráficos de Barras**: Exibição de receitas e despesas por órgão.
-3. **Comparação de Municípios**: Até 20 municípios comparados simultaneamente.
-4. **Geração de PDFs**: Relatórios exportáveis para cada aba.
+### **Estrutura Geral**
+```
+/Projeto_DOSSIE/
+├── tce_back/           # Backend ETL e Monitoramento
+├── tce_front/          # Frontend Dashboard
+├── requirements.txt    # Dependências unificadas
+└── README.md          # Esta documentação
+```
 
-### Backend
-1. **Extração de Dados**: Consome dados de APIs públicas com múltiplos endpoints.
-2. **Armazenamento de Dados**: Banco de dados relacional estruturado para análises.
-3. **Otimização**: Índices e views para melhorar o desempenho de consultas.
+### **tce_back - Backend ETL**
+```
+tce_back/
+├── dashboard.py        # Monitoramento Streamlit
+├── main.py            # Orquestrador ETL
+├── etl_interface.py   # Interface de consultas
+├── config.py          # Configurações globais
+├── data_extraction/   # Módulos de extração
+├── database/          # Configuração BD e schemas
+└── docs/             # Documentação e MER
+```
+
+### **tce_front - Frontend Dashboard**
+```
+tce_front/
+├── app.py             # Aplicação Dash principal
+├── layout.py          # Layout da interface
+├── callbacks.py       # Lógica interativa
+├── pages/             # Páginas do dashboard
+├── utils/             # Utilitários (BD, gráficos)
+└── assets/            # CSS e recursos estáticos
+```
 
 ---
 
-## Configuração do Ambiente
+## 🚀 **Funcionalidades Principais**
 
-### Requisitos
-- **Frontend**:
-  - Dash, Flask, Plotly, Pandas.
-- **Backend**:
-  - PostgreSQL, SQLAlchemy.
+### **Backend (ETL)**
+✅ **Extração de Dados**: 11 tipos de dados municipais via API TCE-CE
+✅ **Monitoramento em Tempo Real**: Dashboard com métricas de progresso
+✅ **Controle de Qualidade**: Validação de dados e saúde da pipeline
+✅ **Armazenamento Otimizado**: PostgreSQL com índices e views
 
-### Passos para Configuração
-1. **Clone o Repositório**:
-   ```bash
-   git clone https://github.com/seu-repositorio.git
-   cd projeto
+### **Frontend (Dashboard)**
+✅ **Análise Interativa**: 5 abas especializadas com gráficos dinâmicos
+✅ **Filtros Inteligentes**: Seleção global de município e ano
+✅ **KPIs em Tempo Real**: Métricas calculadas automaticamente
+✅ **Relatórios**: Exportação para PDF e CSV
+✅ **Comparação**: Até 20 municípios simultaneamente
 
-	2.	Configure o Ambiente Virtual:
+---
 
-python3 -m venv myvenv
-source myvenv/bin/activate
+## 📋 **Pré-requisitos**
 
+- **Python**: 3.8+
+- **PostgreSQL**: 12+
+- **Git**: Para versionamento
+- **Brew** (macOS): Para instalar dependências
 
-	3.	Instale as Dependências:
-
+### **Dependências Python**
+```bash
 pip install -r requirements.txt
+```
 
+Principais bibliotecas:
+- **Dash + Plotly**: Interface web e gráficos
+- **SQLAlchemy**: ORM para banco de dados
+- **Streamlit**: Dashboard de monitoramento
+- **Pandas**: Manipulação de dados
+- **Requests**: Cliente HTTP para APIs
 
-	4.	Configure o Banco de Dados:
-	•	Edite database/db_config.py com as credenciais apropriadas.
-	5.	Execute o Backend:
+---
 
-python main.py
+## ⚙️ **Instalação e Configuração**
 
+### **1. Clonagem do Repositório**
+```bash
+git clone https://github.com/Cassiopo7/Projeto_TCE.git
+cd Projeto_DOSSIE
+```
 
-	6.	Inicie o Frontend:
+### **2. Configuração do Banco**
+```bash
+# Instalar PostgreSQL (macOS)
+brew install postgresql
+brew services start postgresql
 
-python app.py
+# Criar banco de dados
+createdb tce
 
-Detalhamento Técnico e Horas Estimadas
+# Configurar credenciais (opcional)
+# Editar tce_back/config.py se necessário
+```
 
-Frontend
+### **3. Ambiente Virtual**
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate   # Windows
+```
 
-Funcionalidade	Descrição	Horas Estimadas
-Seleção de Municípios	Dropdown dinâmico.	6
-Tabs de Navegação	Navegação entre páginas.	8
-Página Inicial	Gráficos e tabelas de receitas e despesas.	15
-Página de Despesas	Gráficos e tabelas de despesas detalhadas.	12
-Página de Receitas	Gráficos e tabelas de receitas detalhadas.	12
-Página de Pessoal	Informações sobre agentes públicos.	15
-Comparação de Municípios	Comparação de até 20 municípios.	20
-Estilização com CSS	Personalização da interface.	8
-Exportação para PDF	Relatórios para cada aba.	12
+### **4. Instalação de Dependências**
+```bash
+pip install -r requirements.txt
+```
 
-Total do Frontend: 117 horas
+### **5. Configuração do Schema**
+```bash
+cd tce_back
+python3 database/db_setup.py
+```
 
-Backend
+---
 
-Funcionalidade	Descrição	Horas Estimadas
-Configuração do Banco de Dados	Criação de tabelas e índices.	10
-Extração de Dados	Métodos para consumir APIs públicas.	40
-Armazenamento de Dados	Carregamento e transformação de dados.	36
-Otimização do Banco de Dados	Índices e análise de desempenho.	8
-Criação de Views SQL	Views para detalhamento de dados.	32
-Documentação Técnica	Documentação detalhada.	8
-Testes e Validação	Validação de funcionalidades e desempenho.	10
-Geração de PDFs (Backend)	Backend para geração de relatórios.	8
+## 🎮 **Como Usar**
 
-Total do Backend: 130 horas
+### **Executar Backend ETL**
+```bash
+cd tce_back
 
-Resumo Geral
+# Executar função específica
+python3 main.py load_municipios
+python3 main.py load_receitas
+python3 main.py load_despesas
 
-Frente	Horas Totais
-Frontend	117
-Backend	130
-Total	247 horas
+# Dashboard de monitoramento
+streamlit run dashboard.py
+```
 
-Melhorias Futuras
+### **Executar Frontend Dashboard**
+```bash
+cd tce_front
+python3 app.py
+```
 
-	1.	Implementação de cache para reduzir o tempo de carregamento.
-	2.	Paralelização para otimizar extração de dados.
-	3.	Testes automatizados para validação contínua.
+**Acesso**: http://localhost:8040
+
+---
+
+## 📊 **Funcionalidades Detalhadas**
+
+### **Backend ETL**
+| Função | Descrição |
+|--------|-----------|
+| `load_municipios` | Carrega lista de municípios |
+| `load_orgaos` | Órgãos públicos municipais |
+| `load_receitas` | Receitas orçamentárias |
+| `load_despesas` | Despesas orçamentárias |
+| `load_licitacao` | Processos licitatórios |
+| `load_prestacao_contas` | Prestação de contas |
+| `load_liquidacoes` | Liquidações de despesas |
+| `load_notas_empenho` | Notas de empenho |
+
+### **Frontend Dashboard**
+| Aba | Descrição |
+|-----|-----------|
+| **Receitas Detalhadas** | Análise de arrecadação por origem |
+| **Despesas Detalhadas** | Gastos por órgão e categoria |
+| **Receitas x Despesas** | Comparação e resumo financeiro |
+| **Pessoal** | Agentes públicos por órgão |
+| **Comparação** | Até 20 municípios lado a lado |
+
+---
+
+## 🎨 **Interface do Dashboard**
+
+### **Recursos Avançados**
+- **Filtro Global**: Ano e município aplicados automaticamente
+- **Estados de Carregamento**: Spinners durante processamento
+- **Cache Inteligente**: Dados cacheados para performance
+- **KPIs Dinâmicos**: Cálculos automáticos de variações
+- **Visualização MER**: Diagrama do modelo de dados integrado
+
+### **Monitoramento ETL**
+- **Saúde da Pipeline**: Status DB/API em tempo real
+- **Progresso por Tipo**: Barras de progresso visuais
+- **Última Execução**: Timestamp das cargas mais recentes
+- **Pendências**: Municípios não carregados por período
+
+---
+
+## 🔧 **Configuração Avançada**
+
+### **Variáveis de Ambiente**
+```bash
+# Arquivo .env (opcional)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=tce
+DB_USER=postgres
+DB_PASSWORD=postgres
+```
+
+### **Personalização**
+- **Cores**: Editar `tce_front/assets/style.css`
+- **Layout**: Modificar `tce_front/layout.py`
+- **Queries**: Ajustar em `tce_front/utils/database.py`
+
+---
+
+## 📈 **Monitoramento e Métricas**
+
+### **Dashboard ETL** (`tce_back/dashboard.py`)
+- **Progresso Geral**: Total de registros por tipo
+- **Completude**: Percentual por período/ano
+- **Saúde**: Status de conectividade DB/API
+- **Últimas Execuções**: Timestamp por tipo de dado
+
+### **Performance**
+- **Cache**: TTL de 60s para dados frequentes
+- **Lazy Loading**: Dados carregados sob demanda
+- **Compressão**: Otimização de queries SQL
+
+---
+
+## 🚀 **Deploy e Produção**
+
+### **Docker (Recomendado)**
+```dockerfile
+# Dockerfile exemplo
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+EXPOSE 8040 8050
+
+CMD ["python", "tce_front/app.py"]
+```
+
+### **Serviços**
+- **Frontend**: Porta 8040
+- **Backend Dashboard**: Porta 8050 (Streamlit)
+- **PostgreSQL**: Porta 5432
+
+---
+
+## 🧪 **Testes e Validação**
+
+### **Testes Básicos**
+```bash
+# Backend
+cd tce_back
+python3 -c "from etl_interface import get_progresso_por_tipo; print(len(get_progresso_por_tipo()))"
+
+# Frontend
+cd tce_front
+python3 -c "from utils.database import get_municipios; print(len(get_municipios()))"
+```
+
+### **Validação de Dados**
+- Compare totais entre backend e frontend
+- Verifique integridade referencial
+- Valide formatos de data e valores
+
+---
+
+## 🔮 **Roadmap e Melhorias**
+
+### **Próximas Features**
+- [ ] **Autenticação**: Controle de acesso aos dashboards
+- [ ] **APIs REST**: Endpoints padronizados FastAPI
+- [ ] **Cache Distribuído**: Redis para escalabilidade
+- [ ] **Testes Automatizados**: Pytest + CI/CD
+- [ ] **Containerização**: Docker Compose completo
+- [ ] **Monitoramento Avançado**: Prometheus + Grafana
+
+### **Otimização**
+- [ ] **Paralelização**: Processamento assíncrono ETL
+- [ ] **Compressão**: Dados históricos comprimidos
+- [ ] **Indexação**: Otimização de queries pesadas
+
+---
+
+## 📞 **Suporte e Contribuição**
+
+### **Issues e Bugs**
+- Use o GitHub Issues para reportar problemas
+- Inclua logs de erro e passos para reproduzir
+
+### **Contribuição**
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+---
+
+## 📄 **Licença**
+
+Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para detalhes.
+
+---
+
+## 👥 **Equipe**
+
+**Desenvolvedor Principal**: Cassio Pinheiro
+**Contato**: [GitHub](https://github.com/Cassiopo7)
+
+---
+
+## 🔗 **Links Úteis**
+
+- **Repositório**: https://github.com/Cassiopo7/Projeto_TCE
+- **API TCE-CE**: https://api-dados-abertos.tce.ce.gov.br/
+- **Dash Docs**: https://dash.plotly.com/
+- **Streamlit Docs**: https://docs.streamlit.io/
+
+---
+
+*Última atualização: Dezembro 2024*

@@ -2,13 +2,15 @@ from sqlalchemy import create_engine, text
 import pandas as pd
 from functools import lru_cache
 
-# Configuração de conexão
+# Configuração de conexão - usando variáveis de ambiente como no backend
+import os
+
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': '5432',
-    'database': 'tce',
-    'user': 'postgres',
-    'password': 'postgres'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': os.getenv('DB_PORT', '5432'),
+    'database': os.getenv('DB_NAME', 'tce'),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', 'postgres')
 }
 
 # Criação do engine SQLAlchemy
@@ -53,9 +55,9 @@ def get_anos_disponiveis():
     Retorna anos distintos presentes nas tabelas de receita/despesa/orçamentos.
     """
     try:
-        anos_receita = query_db("SELECT DISTINCT ano FROM receita_detalhada ORDER BY ano")
-        anos_despesa = query_db("SELECT DISTINCT ano FROM despesa_detalhada ORDER BY ano")
-        anos_orc = query_db("SELECT DISTINCT exercicio_orcamento AS ano FROM orcamentos ORDER BY ano")
+        anos_receita = query_db("SELECT DISTINCT ano FROM receita WHERE ano IS NOT NULL ORDER BY ano")
+        anos_despesa = query_db("SELECT DISTINCT ano FROM despesa WHERE ano IS NOT NULL ORDER BY ano")
+        anos_orc = query_db("SELECT DISTINCT CAST(exercicio_orcamento AS INTEGER) AS ano FROM orcamentos WHERE exercicio_orcamento IS NOT NULL ORDER BY ano")
         todos = pd.concat([
             anos_receita.rename(columns={"ano": "ano"}),
             anos_despesa.rename(columns={"ano": "ano"}),

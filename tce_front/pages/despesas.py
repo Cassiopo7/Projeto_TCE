@@ -87,7 +87,7 @@ def render_content(municipio_id, ano):
                     ano::text AS ano, 
                     SUM(distinct valor_fixado_orcamento_bal_despesa) AS valor_fixado,
                     SUM(distinct valor_liquidado_no_mes) AS valor_executado
-                FROM despesa_detalhada
+                FROM despesa
                 WHERE municipio_id = '{municipio_id}'
                 GROUP BY ano
                 ORDER BY ano;
@@ -114,7 +114,7 @@ def render_content(municipio_id, ano):
                     SUM(distinct valor_empenhado_no_mes) as valor_empenhado,
                     SUM(distinct valor_liquidado_no_mes) as valor_liquidado,
                     SUM(distinct valor_pago_no_mes) as valor_pago
-                FROM despesa_detalhada
+                FROM despesa
                 WHERE municipio_id = '{municipio_id}' AND ano = '{ano}'
                 GROUP BY ano,mes
                 ORDER BY ano,mes;
@@ -140,7 +140,7 @@ def render_content(municipio_id, ano):
                     ano,
                     mes, 
                     SUM(distinct valor_liquidado_no_mes) AS valor_liquidado
-                FROM despesa_detalhada
+                FROM despesa
                 WHERE ano = '{ano}'
                 GROUP BY ano, mes
                 ORDER BY ano, mes;
@@ -162,11 +162,11 @@ def render_content(municipio_id, ano):
         "proc_adm_licitacoes": {
             "query": """
                 SELECT 
-                    descricao_status, 
+                    status AS descricao_status, 
                     SUM(valor_estimado) as valorestimado
                 FROM licitacao
-                WHERE municipio_id = '{municipio_id}'
-                GROUP BY descricao_status;
+                WHERE municipio_id = '{municipio_id}' AND status IS NOT NULL
+                GROUP BY status;
             """,
             "id_vars": ["descricao_status"],
             "value_vars": ["valorestimado"],
@@ -186,11 +186,11 @@ def render_content(municipio_id, ano):
         "modalidade_licitacao": {
             "query": """
                 SELECT 
-                    descricao_modalidade, 
+                    modalidade AS descricao_modalidade, 
                     SUM(valor_estimado) as valorestimado
                 FROM licitacao
-                WHERE municipio_id = '{municipio_id}'
-                GROUP BY descricao_modalidade;
+                WHERE municipio_id = '{municipio_id}' AND modalidade IS NOT NULL
+                GROUP BY modalidade;
             """,
             "id_vars": ["descricao_modalidade"],
             "value_vars": ["valorestimado"],

@@ -1,13 +1,15 @@
 from sqlalchemy import create_engine
 import pandas as pd
 
-# Configuração de conexão
+# Configuração de conexão - usando variáveis de ambiente como no backend
+import os
+
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': '5432',
-    'database': 'tce',
-    'user': 'postgres',
-    'password': 'postgres'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': os.getenv('DB_PORT', '5432'),
+    'database': os.getenv('DB_NAME', 'tce'),
+    'user': os.getenv('DB_USER', 'postgres'),
+    'password': os.getenv('DB_PASSWORD', 'postgres')
 }
 
 # Criação do engine SQLAlchemy

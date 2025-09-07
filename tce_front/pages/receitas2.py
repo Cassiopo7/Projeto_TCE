@@ -47,7 +47,7 @@ def render_content(municipio_id, ano):
                     ano::text AS ano, 
                     SUM(distinct valor_previsto_orcamento) AS valor_previsto,
                     SUM(distinct valor_arrecadado_no_mes) AS valor_arrecadado
-                FROM receita_detalhada
+                FROM receita
                 WHERE municipio_id = '{municipio_id}'
                 GROUP BY ano
                 ORDER BY ano;
@@ -71,7 +71,7 @@ def render_content(municipio_id, ano):
                 SELECT 
                     TO_CHAR(TO_DATE(mes || '-' || '01' || '-' || ano, 'MM-DD-YYYY'), 'Month YYYY') AS mes_ano, 
                     SUM(distinct valor_arrecadado_no_mes) as valor_arrecadado_no_mes
-                FROM receita_detalhada
+                FROM receita
                 WHERE municipio_id = '{municipio_id}'
                 GROUP BY ano, mes
                 ORDER BY ano, mes;
@@ -90,13 +90,23 @@ def render_content(municipio_id, ano):
         "receita_por_origem": {
             "query": """
                 SELECT 
-                    tipo_receita, 
-                    SUM(distinct valor_arrecadado_NO_mes) AS valor_arrecadado_por_origem
-                FROM receita_detalhada
-                LEFT JOIN rubricas 
-	                on receita_detalhada.codigo_rubrica = rubricas.codigo_rubrica
-                WHERE municipio_id = '{municipio_id}'
-                GROUP BY tipo_receita
+                    CASE 
+                        WHEN codigo_rubrica LIKE '1.1%' THEN 'Receitas Tributárias'
+                        WHEN codigo_rubrica LIKE '1.2%' THEN 'Receitas de Contribuições'
+                        WHEN codigo_rubrica LIKE '1.3%' THEN 'Receita Patrimonial'
+                        WHEN codigo_rubrica LIKE '1.7%' THEN 'Transferências Correntes'
+                        ELSE 'Outras Receitas'
+                    END AS tipo_receita,
+                    SUM(distinct valor_arrecadado_no_mes) AS valor_arrecadado_por_origem
+                FROM receita
+                WHERE municipio_id = '{municipio_id}' AND codigo_rubrica IS NOT NULL
+                GROUP BY CASE 
+                        WHEN codigo_rubrica LIKE '1.1%' THEN 'Receitas Tributárias'
+                        WHEN codigo_rubrica LIKE '1.2%' THEN 'Receitas de Contribuições'
+                        WHEN codigo_rubrica LIKE '1.3%' THEN 'Receita Patrimonial'
+                        WHEN codigo_rubrica LIKE '1.7%' THEN 'Transferências Correntes'
+                        ELSE 'Outras Receitas'
+                    END
                 ORDER BY valor_arrecadado_por_origem ASC;
             """,
             "id_vars": ["tipo_receita"],
@@ -115,14 +125,31 @@ def render_content(municipio_id, ano):
         "receita_transferencia": {
             "query": """
                 SELECT 
-                    tipo_receita, 
-                    SUM(distinct valor_arrecadado_NO_mes) AS valor_arrecadado_por_origem
-                FROM receita_detalhada
-                LEFT JOIN rubricas 
-	                on receita_detalhada.codigo_rubrica = rubricas.codigo_rubrica
-                WHERE municipio_id = '{municipio_id}'
-                    and categoria_tipo_receita = 'receitas de transferencias'
-                GROUP BY tipo_receita
+                    CASE 
+                        WHEN codigo_rubrica LIKE '1.7.1%' THEN 'Transferências da União'
+                        WHEN codigo_rubrica LIKE '1.7.2%' THEN 'Transferências dos Estados'
+                        WHEN codigo_rubrica LIKE '1.7.3%' THEN 'Transferências dos Municípios'
+                        WHEN codigo_rubrica LIKE '1.7.4%' THEN 'Transferências Multigovernamentais'
+                        WHEN codigo_rubrica LIKE '1.7.5%' THEN 'Transferências de Consórcios Públicos'
+                        WHEN codigo_rubrica LIKE '1.7.6%' THEN 'Transferências do Exterior'
+                        WHEN codigo_rubrica LIKE '1.7.7%' THEN 'Transferências de Pessoas'
+                        WHEN codigo_rubrica LIKE '1.7.8%' THEN 'Transferências de Convênios'
+                        ELSE 'Outras Transferências'
+                    END AS tipo_receita,
+                    SUM(distinct valor_arrecadado_no_mes) AS valor_arrecadado_por_origem
+                FROM receita
+                WHERE municipio_id = '{municipio_id}' AND codigo_rubrica LIKE '1.7%'
+                GROUP BY CASE 
+                        WHEN codigo_rubrica LIKE '1.7.1%' THEN 'Transferências da União'
+                        WHEN codigo_rubrica LIKE '1.7.2%' THEN 'Transferências dos Estados'
+                        WHEN codigo_rubrica LIKE '1.7.3%' THEN 'Transferências dos Municípios'
+                        WHEN codigo_rubrica LIKE '1.7.4%' THEN 'Transferências Multigovernamentais'
+                        WHEN codigo_rubrica LIKE '1.7.5%' THEN 'Transferências de Consórcios Públicos'
+                        WHEN codigo_rubrica LIKE '1.7.6%' THEN 'Transferências do Exterior'
+                        WHEN codigo_rubrica LIKE '1.7.7%' THEN 'Transferências de Pessoas'
+                        WHEN codigo_rubrica LIKE '1.7.8%' THEN 'Transferências de Convênios'
+                        ELSE 'Outras Transferências'
+                    END
                 ORDER BY valor_arrecadado_por_origem ASC;
             """,
             "id_vars": ["tipo_receita"],
@@ -141,14 +168,21 @@ def render_content(municipio_id, ano):
         "receita_tributaria": {
             "query": """
                 SELECT 
-                    tipo_receita, 
-                    SUM(distinct valor_arrecadado_NO_mes) AS valor_arrecadado_por_origem
-                FROM receita_detalhada
-                LEFT JOIN rubricas 
-	                on receita_detalhada.codigo_rubrica = rubricas.codigo_rubrica
-                WHERE municipio_id = '{municipio_id}'
-                    and categoria_tipo_receita = 'receitas tributarias'
-                GROUP BY tipo_receita
+                    CASE 
+                        WHEN codigo_rubrica LIKE '1.1.1%' THEN 'Impostos'
+                        WHEN codigo_rubrica LIKE '1.1.2%' THEN 'Taxas'
+                        WHEN codigo_rubrica LIKE '1.1.3%' THEN 'Contribuição de Melhoria'
+                        ELSE 'Outras Receitas Tributárias'
+                    END AS tipo_receita,
+                    SUM(distinct valor_arrecadado_no_mes) AS valor_arrecadado_por_origem
+                FROM receita
+                WHERE municipio_id = '{municipio_id}' AND codigo_rubrica LIKE '1.1%'
+                GROUP BY CASE 
+                        WHEN codigo_rubrica LIKE '1.1.1%' THEN 'Impostos'
+                        WHEN codigo_rubrica LIKE '1.1.2%' THEN 'Taxas'
+                        WHEN codigo_rubrica LIKE '1.1.3%' THEN 'Contribuição de Melhoria'
+                        ELSE 'Outras Receitas Tributárias'
+                    END
                 ORDER BY valor_arrecadado_por_origem ASC;
             """,
             "id_vars": ["tipo_receita"],
