@@ -230,7 +230,7 @@ class ProjectRunner:
         print(f"🏛️ Total de municípios: {status['total_municipios']}")
         print(f"📊 Tipos de dados carregados: {status['tipos_carregados']}")
         print(f"📈 Municípios com dados: {status['municipios_carregados']}")
-        print(".1f"        print(".1f"
+        print(f"📈 Completude atual: {status['completude_atual']:.1f}%")
         if status['atualizada']:
             print("✅ Status: BASE ATUALIZADA")
         else:
@@ -238,7 +238,9 @@ class ProjectRunner:
 
         print("\n📋 Progresso por tipo:")
         for tipo, total in status['progresso_geral'].items():
-            print(","
+            print(f"  {tipo}: {total} registros")
+        print()
+
     def executar(self):
         """Executa o fluxo completo do projeto."""
         print("🚀 INICIANDO PROJETO TCE")
