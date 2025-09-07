@@ -54,6 +54,229 @@ tce_front/
 
 ---
 
+## 📋 **Diagramas C4 - Arquitetura do Sistema**
+
+### **C4 Context Diagram - Visão Geral**
+
+```mermaid
+graph TB
+    subgraph "👥 Usuários Externos"
+        A[👤 Analista TCE]
+        B[👥 Gestor Municipal]
+        C[📊 Auditor Público]
+    end
+
+    subgraph "🏛️ Sistema TCE-CE"
+        D[📡 API TCE-CE<br/>Dados Municipais]
+    end
+
+    subgraph "🔧 Projeto DOSSIE"
+        E[🔄 ETL Pipeline<br/>Extração & Processamento]
+        F[📊 Dashboard Backend<br/>Monitoramento]
+        G[📈 Dashboard Frontend<br/>Visualização]
+        H[🗄️ PostgreSQL<br/>Base de Dados]
+    end
+
+    A --> G
+    B --> G
+    C --> F
+    G --> H
+    F --> H
+    E --> H
+    E --> D
+
+    style E fill:#e1f5fe
+    style F fill:#f3e5f5
+    style G fill:#e8f5e8
+    style H fill:#fff3e0
+```
+
+### **C4 Container Diagram - Componentes do Sistema**
+
+```mermaid
+graph TB
+    subgraph "🔄 ETL Pipeline (tce_back/)"
+        A1[📡 api_client.py<br/>Cliente API]
+        A2[📥 data_loader.py<br/>Carregamento]
+        A3[⚙️ main.py<br/>Orquestrador]
+        A4[📊 dashboard.py<br/>Monitoramento]
+        A5[🔗 etl_interface.py<br/>Interface ETL]
+    end
+
+    subgraph "📈 Frontend Dashboard (tce_front/)"
+        B1[🌐 app.py<br/>Aplicação Dash]
+        B2[🎛️ callbacks.py<br/>Interatividade]
+        B3[📋 layout.py<br/>Interface]
+        B4[📁 pages/<br/>Páginas]
+        B5[🔗 database.py<br/>Conexão BD]
+    end
+
+    subgraph "🗄️ PostgreSQL Database"
+        C1[(Municípios)]
+        C2[(Receitas)]
+        C3[(Despesas)]
+        C4[(Agentes)]
+        C5[(Licitações)]
+        C6[(vw_receita_detalhada)]
+        C7[(vw_despesa_detalhada)]
+    end
+
+    subgraph "📡 API TCE-CE"
+        D1[🏛️ Dados Municipais]
+        D2[💰 Receitas/Despesas]
+        D3[👥 Servidores]
+        D4[📋 Licitações]
+    end
+
+    A1 --> D1
+    A1 --> D2
+    A1 --> D3
+    A1 --> D4
+
+    A2 --> C1
+    A2 --> C2
+    A2 --> C3
+    A2 --> C4
+
+    B5 --> C1
+    B5 --> C2
+    B5 --> C3
+    B5 --> C6
+    B5 --> C7
+
+    A3 --> A1
+    A3 --> A2
+    A4 --> A5
+    B1 --> B2
+    B1 --> B3
+    B4 --> B5
+
+    style A1 fill:#e3f2fd
+    style A2 fill:#e3f2fd
+    style A3 fill:#e3f2fd
+    style A4 fill:#e3f2fd
+    style A5 fill:#e3f2fd
+
+    style B1 fill:#f3e5f5
+    style B2 fill:#f3e5f5
+    style B3 fill:#f3e5f5
+    style B4 fill:#f3e5f5
+    style B5 fill:#f3e5f5
+
+    style C1 fill:#fff3e0
+    style C2 fill:#fff3e0
+    style C3 fill:#fff3e0
+    style C4 fill:#fff3e0
+    style C5 fill:#fff3e0
+    style C6 fill:#fff3e0
+    style C7 fill:#fff3e0
+
+    style D1 fill:#e8f5e8
+    style D2 fill:#e8f5e8
+    style D3 fill:#e8f5e8
+    style D4 fill:#e8f5e8
+```
+
+### **C4 Component Diagram - Detalhes do ETL**
+
+```mermaid
+graph TB
+    subgraph "📡 Data Extraction Layer"
+        A1[🔍 MunicipioAPI<br/>Busca Municípios]
+        A2[💰 ReceitaAPI<br/>Busca Receitas]
+        A3[💸 DespesaAPI<br/>Busca Despesas]
+        A4[👥 AgenteAPI<br/>Busca Servidores]
+        A5[📋 LicitacaoAPI<br/>Busca Licitações]
+    end
+
+    subgraph "⚙️ ETL Orchestrator"
+        B1[🎯 main.py<br/>Coordenação]
+        B2[📊 ProgressTracker<br/>Acompanhamento]
+        B3[🔄 BatchProcessor<br/>Processamento]
+    end
+
+    subgraph "💾 Data Loading Layer"
+        C1[🗄️ DatabaseLoader<br/>Inserção BD]
+        C2[🔍 DataValidator<br/>Validação]
+        C3[📋 ErrorHandler<br/>Tratamento Erros]
+    end
+
+    subgraph "📊 Monitoring Layer"
+        D1[📈 dashboard.py<br/>Interface Web]
+        D2[📊 etl_interface.py<br/>APIs Monitoramento]
+        D3[📋 ProgressAPI<br/>Status em Tempo Real]
+    end
+
+    B1 --> A1
+    B1 --> A2
+    B1 --> A3
+    B1 --> A4
+    B1 --> A5
+
+    A1 --> B2
+    A2 --> B2
+    A3 --> B2
+    A4 --> B2
+    A5 --> B2
+
+    B2 --> B3
+    B3 --> C1
+    C1 --> C2
+    C2 --> C3
+
+    B2 --> D3
+    D3 --> D2
+    D2 --> D1
+
+    style A1 fill:#e3f2fd
+    style A2 fill:#e3f2fd
+    style A3 fill:#e3f2fd
+    style A4 fill:#e3f2fd
+    style A5 fill:#e3f2fd
+
+    style B1 fill:#fff3e0
+    style B2 fill:#fff3e0
+    style B3 fill:#fff3e0
+
+    style C1 fill:#e8f5e8
+    style C2 fill:#e8f5e8
+    style C3 fill:#e8f5e8
+
+    style D1 fill:#f3e5f5
+    style D2 fill:#f3e5f5
+    style D3 fill:#f3e5f5
+```
+
+### **🔄 Fluxo de Dados do Sistema**
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 Usuário
+    participant S as 🚀 run_project.py
+    participant E as 🔄 ETL Pipeline
+    participant A as 📡 API TCE-CE
+    participant D as 🗄️ PostgreSQL
+    participant F as 📊 Dashboard Frontend
+    participant M as 📈 Dashboard Backend
+
+    U->>S: Executa script
+    S->>D: Verifica status BD
+    D-->>S: Status da base
+    S->>E: Inicia ETL (se necessário)
+    E->>A: Busca dados municipais
+    A-->>E: Retorna dados JSON
+    E->>D: Insere dados processados
+    E-->>S: Confirmação ETL
+    S->>M: Inicia dashboard monitoramento
+    S->>F: Inicia dashboard visualização
+    M->>D: Consulta métricas em tempo real
+    F->>D: Busca dados para gráficos
+    U->>F: Interage com visualizações
+    U->>M: Monitora progresso ETL
+```
+
+---
+
 ## 🚀 **Funcionalidades Principais**
 
 ### **Backend (ETL)**
@@ -560,4 +783,253 @@ Este projeto é distribuído sob a licença MIT. Veja o arquivo `LICENSE` para d
 
 ---
 
-*Última atualização: Janeiro 2025 | Status: ✅ Totalmente Funcional*
+## 🚀 **Deploy e CI/CD**
+
+### **Pré-requisitos para Deploy**
+
+#### **1. Conta e Ferramentas**
+- ✅ **GitHub** - Repositório configurado
+- ✅ **Coolify** - Plataforma de deploy
+- ✅ **Docker** - Containerização
+- ✅ **PostgreSQL** - Banco de dados
+
+#### **2. Configurações Necessárias**
+```bash
+# 1. Configurar variáveis de ambiente
+cp .env.example .env
+
+# 2. Configurar secrets no GitHub
+# Acesse: https://github.com/Cassiopo7/Projeto_TCE/settings/secrets/actions
+```
+
+### **🚀 Deploy Automático com Coolify**
+
+#### **Opção 1: Deploy com Docker Compose (Recomendado)**
+
+1. **Configurar Coolify:**
+   - Acesse seu dashboard do Coolify
+   - Clique em "Create New Project"
+   - Selecione "Docker Compose"
+
+2. **Configurar GitHub Integration:**
+   ```bash
+   # No Coolify, configure:
+   Repository: https://github.com/Cassiopo7/Projeto_TCE
+   Branch: main
+   Compose file: docker-compose.yml
+   ```
+
+3. **Configurar Environment Variables:**
+   ```bash
+   # No Coolify, adicione as variáveis do .env.example:
+   DB_NAME=tce_prod
+   DB_USER=tce_user
+   DB_PASSWORD=sua_senha_forte
+   ENVIRONMENT=production
+   ```
+
+4. **Deploy:**
+   - Coolify irá automaticamente:
+     - ✅ Fazer build das imagens
+     - ✅ Subir PostgreSQL
+     - ✅ Configurar redes
+     - ✅ Iniciar serviços
+     - ✅ Configurar health checks
+
+#### **Opção 2: Deploy Manual com Docker**
+
+```bash
+# 1. Clonar e configurar
+git clone https://github.com/Cassiopo7/Projeto_TCE.git
+cd Projeto_DOSSIE
+cp .env.example .env
+
+# 2. Configurar .env com suas credenciais
+nano .env
+
+# 3. Build e deploy
+docker-compose up -d --build
+
+# 4. Verificar status
+docker-compose ps
+docker-compose logs
+```
+
+### **🔧 Configuração do CI/CD**
+
+#### **GitHub Actions Workflows**
+
+O projeto inclui workflows automatizados:
+
+1. **🚀 Deploy Workflow** (`.github/workflows/deploy.yml`)
+   - ✅ **Testes** - Linting e testes básicos
+   - 🏗️ **Build** - Cria imagens Docker
+   - 📦 **Push** - Envia para GitHub Container Registry
+   - 🚀 **Deploy** - Aciona Coolify automaticamente
+
+2. **💾 Backup Workflow** (`.github/workflows/backup.yml`)
+   - ⏰ **Automático** - Executa diariamente às 22:00 BRT
+   - 🗄️ **Backup** - Cria backup do PostgreSQL
+   - 📤 **Upload** - Salva artifacts no GitHub
+   - 🧹 **Cleanup** - Remove backups antigos
+
+#### **Configuração das Secrets no GitHub**
+
+```bash
+# Acesse: https://github.com/Cassiopo7/Projeto_TCE/settings/secrets/actions
+
+# Para produção:
+DB_HOST_PROD=your_prod_db_host
+DB_PORT_PROD=5432
+DB_NAME_PROD=tce_prod
+DB_USER_PROD=tce_user
+DB_PASSWORD_PROD=your_prod_password
+
+# Para Coolify (se necessário):
+COOLIFY_API_KEY=your_coolify_api_key
+COOLIFY_WEBHOOK_URL=your_coolify_webhook
+```
+
+### **📊 Monitoramento e Backup**
+
+#### **Backup Automático**
+```bash
+# Backup manual
+./scripts/backup_database.sh production
+
+# Restauração
+./scripts/restore_database.sh backups/tce_backup_production_20241201.sql
+```
+
+#### **Monitoramento dos Serviços**
+```bash
+# Verificar status dos containers
+docker-compose ps
+
+# Ver logs em tempo real
+docker-compose logs -f
+
+# Health checks
+curl http://localhost:8040/          # Frontend
+curl http://localhost:8050/health    # Backend
+```
+
+### **🔄 Estratégia de Deploy**
+
+#### **Branches e Ambientes**
+```
+main     → Produção  🚀
+develop  → Staging   🧪
+feature/* → Desenvolvimento 🛠️
+```
+
+#### **Fluxo de Deploy**
+1. **Push para `main`** → CI/CD executa automaticamente
+2. **Coolify detecta** → Faz build e deploy
+3. **Health checks** → Verificam se serviços estão OK
+4. **Notificações** → Status do deploy
+
+### **🐛 Troubleshooting**
+
+#### **Problemas Comuns**
+
+**❌ Container não inicia:**
+```bash
+# Verificar logs
+docker-compose logs tce_backend
+docker-compose logs tce_frontend
+
+# Verificar variáveis de ambiente
+docker-compose exec tce_backend env
+```
+
+**❌ Erro de conexão com banco:**
+```bash
+# Verificar se PostgreSQL está rodando
+docker-compose ps postgres
+
+# Testar conexão
+docker-compose exec postgres pg_isready
+```
+
+**❌ Deploy falha no Coolify:**
+```bash
+# Verificar logs do Coolify
+# Verificar se as secrets estão configuradas
+# Verificar se o docker-compose.yml está válido
+```
+
+#### **Recuperação de Emergência**
+```bash
+# Parar tudo
+docker-compose down
+
+# Limpar volumes (CUIDADO!)
+docker-compose down -v
+
+# Reconstruir do zero
+docker-compose up -d --build
+```
+
+### **📈 Escalabilidade**
+
+#### **Configurações para Produção**
+```yaml
+# docker-compose.prod.yml
+version: '3.8'
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  tce_backend:
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  tce_frontend:
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+```
+
+### **🔒 Segurança**
+
+#### **Recomendações**
+- ✅ **Usar HTTPS** sempre
+- ✅ **Senhas fortes** no banco
+- ✅ **Firewall** configurado
+- ✅ **Backups regulares**
+- ✅ **Monitoramento ativo**
+- ✅ **Logs centralizados**
+
+---
+
+## 📞 **Suporte e Contato**
+
+### **Canais de Suporte**
+- 📧 **Email**: suporte@your-domain.com
+- 💬 **GitHub Issues**: [Reportar problemas](https://github.com/Cassiopo7/Projeto_TCE/issues)
+- 📖 **Documentação**: Este README.md
+
+### **Recursos Adicionais**
+- 🔗 **Coolify Docs**: https://coolify.io/docs
+- 🐳 **Docker Docs**: https://docs.docker.com
+- 📊 **PostgreSQL Docs**: https://www.postgresql.org/docs
+- ⚡ **GitHub Actions**: https://docs.github.com/actions
+
+---
+
+*Última atualização: Janeiro 2025 | Status: ✅ Pronto para Deploy*

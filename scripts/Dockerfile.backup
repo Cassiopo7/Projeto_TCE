@@ -1,0 +1,37 @@
+# Dockerfile para serviço de backup automático
+FROM alpine:latest
+
+# Instalar PostgreSQL client e dependências
+RUN apk add --no-cache \
+    postgresql-client \
+    bash \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Criar diretório de trabalho
+WORKDIR /app
+
+# Copiar scripts de backup
+COPY backup_database.sh .
+COPY restore_database.sh .
+
+# Tornar scripts executáveis
+RUN chmod +x *.sh
+
+# Criar diretório para backups
+RUN mkdir -p /app/backups
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD pg_isready -h ${DB_HOST:-postgres} -p ${DB_PORT:-5432} -U ${DB_USER:-postgres} || exit 1
+
+# Comando padrão: executar backup e depois dormir
+CMD ["bash", "-c", "
+    echo '💾 Serviço de backup iniciado...'
+    while true; do
+        echo \"📅 Executando backup - $(date)\"
+        ./backup_database.sh production
+        echo \"✅ Backup concluído. Próximo em ${BACKUP_INTERVAL_MINUTES:-60} minutos...\"
+        sleep $(( ${BACKUP_INTERVAL_MINUTES:-60} * 60 ))
+    done
+"]

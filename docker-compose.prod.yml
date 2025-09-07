@@ -1,0 +1,244 @@
+version: '3.8'
+
+# Configuração para produção com Coolify
+# Use este arquivo em produção com: docker-compose -f docker-compose.prod.yml
+
+services:
+  # Banco de Dados PostgreSQL (Produção)
+  postgres:
+    image: postgres:15-alpine
+    container_name: tce_postgres_prod
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tce_prod}
+      POSTGRES_USER: ${DB_USER:-tce_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./tce_back/database/db_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./tce_back/database/db_dominios.sql:/docker-entrypoint-initdb.d/02_dominios.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - tce_prod_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tce_user} -d ${DB_NAME:-tce_prod}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backend ETL e Monitoramento (Produção)
+  tce_backend:
+    build:
+      context: .
+      dockerfile: tce_back/Dockerfile
+      target: production
+    container_name: tce_backend_prod
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-tce_prod}
+      - DB_USER=${DB_USER:-tce_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - PYTHONPATH=/app
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8050:8050"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./tce_back:/app:ro
+      - backend_prod_data:/app/data
+      - backend_prod_logs:/app/logs
+    networks:
+      - tce_prod_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8050/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: unless-stopped
+
+  # Frontend Dashboard (Produção)
+  tce_frontend:
+    build:
+      context: .
+      dockerfile: tce_front/Dockerfile
+      target: production
+    container_name: tce_frontend_prod
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-tce_prod}
+      - DB_USER=${DB_USER:-tce_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - PYTHONPATH=/app
+      - ENVIRONMENT=production
+      - LOG_LEVEL=WARNING
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8040:8040"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tce_backend:
+        condition: service_healthy
+    volumes:
+      - ./tce_front:/app:ro
+      - frontend_prod_data:/app/data
+      - frontend_prod_logs:/app/logs
+    networks:
+      - tce_prod_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8040/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    restart: unless-stopped
+
+  # Nginx Load Balancer (Produção)
+  nginx:
+    image: nginx:alpine
+    container_name: tce_nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - tce_frontend
+      - tce_backend
+    networks:
+      - tce_prod_network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+        reservations:
+          memory: 64M
+          cpus: '0.05'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  # Serviço de Backup Automático
+  backup_service:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.backup
+    container_name: tce_backup_prod
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-tce_prod}
+      - DB_USER=${DB_USER:-tce_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - BACKUP_INTERVAL_MINUTES=${BACKUP_INTERVAL_MINUTES:-60}
+    volumes:
+      - ./backups:/app/backups
+      - ./scripts:/app/scripts:ro
+    networks:
+      - tce_prod_network
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - with_backup
+    restart: unless-stopped
+
+volumes:
+  postgres_prod_data:
+    driver: local
+  backend_prod_data:
+    driver: local
+  frontend_prod_data:
+    driver: local
+  backend_prod_logs:
+    driver: local
+  frontend_prod_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  tce_prod_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

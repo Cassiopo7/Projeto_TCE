@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # Banco de Dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: tce_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tce}
+      POSTGRES_USER: ${DB_USER:-tce_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tce_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./tce_back/database/db_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./tce_back/database/db_dominios.sql:/docker-entrypoint-initdb.d/02_dominios.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - tce_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tce_user} -d ${DB_NAME:-tce}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Backend ETL e Monitoramento
+  tce_backend:
+    build:
+      context: .
+      dockerfile: tce_back/Dockerfile
+    container_name: tce_backend
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-tce}
+      - DB_USER=${DB_USER:-tce_user}
+      - DB_PASSWORD=${DB_PASSWORD:-tce_password}
+      - PYTHONPATH=/app
+    ports:
+      - "8050:8050"  # Dashboard de monitoramento
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./tce_back:/app
+      - backend_data:/app/data
+    networks:
+      - tce_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8050/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    command: ["python", "main.py"]
+
+  # Frontend Dashboard
+  tce_frontend:
+    build:
+      context: .
+      dockerfile: tce_front/Dockerfile
+    container_name: tce_frontend
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-tce}
+      - DB_USER=${DB_USER:-tce_user}
+      - DB_PASSWORD=${DB_PASSWORD:-tce_password}
+      - PYTHONPATH=/app
+    ports:
+      - "8040:8040"  # Dashboard principal
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./tce_front:/app
+      - frontend_data:/app/data
+    networks:
+      - tce_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8040/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Nginx como Load Balancer (opcional)
+  nginx:
+    image: nginx:alpine
+    container_name: tce_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - tce_frontend
+      - tce_backend
+    networks:
+      - tce_network
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_data:
+    driver: local
+  frontend_data:
+    driver: local
+
+networks:
+  tce_network:
+    driver: bridge

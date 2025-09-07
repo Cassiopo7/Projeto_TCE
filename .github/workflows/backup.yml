@@ -1,0 +1,92 @@
+name: 💾 Database Backup
+
+on:
+  schedule:
+    # Executa todos os dias às 2:00 AM UTC (22:00 PM BRT)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente para backup'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+
+env:
+  BACKUP_ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: ${{ env.BACKUP_ENVIRONMENT }}
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: 🗄️ Execute Database Backup
+      run: |
+        echo "💾 Executando backup automático..."
+        echo "🌍 Ambiente: ${{ env.BACKUP_ENVIRONMENT }}"
+        echo "📅 Data/Hora: $(date)"
+
+        # Configurar variáveis de ambiente
+        export DB_HOST=${{ secrets.DB_HOST_PROD }}
+        export DB_PORT=${{ secrets.DB_PORT_PROD }}
+        export DB_NAME=${{ secrets.DB_NAME_PROD }}
+        export DB_USER=${{ secrets.DB_USER_PROD }}
+        export DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}
+
+        # Executar backup
+        chmod +x scripts/backup_database.sh
+        ./scripts/backup_database.sh ${{ env.BACKUP_ENVIRONMENT }}
+
+    - name: 📤 Upload Backup to Storage
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backup-${{ env.BACKUP_ENVIRONMENT }}-${{ github.run_number }}
+        path: backups/
+        retention-days: 30
+
+    - name: 📧 Send Notification
+      if: always()
+      run: |
+        echo "📧 Enviando notificação de backup..."
+        echo "📊 Status: ${{ job.status }}"
+        echo "🌍 Ambiente: ${{ env.BACKUP_ENVIRONMENT }}"
+        echo "📅 Timestamp: $(date)"
+
+        # Aqui você pode integrar com serviços de notificação
+        # como Slack, Discord, email, etc.
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: backup
+    if: success()
+
+    steps:
+    - name: 🧹 Cleanup Old Backups
+      run: |
+        echo "🧹 Limpando backups antigos..."
+
+        # Listar artifacts (simulação)
+        echo "📦 Backups atuais:"
+        echo "  - backup_20241201_020000_production.sql"
+        echo "  - backup_20241202_020000_production.sql"
+        echo "  - backup_20241203_020000_production.sql"
+
+        echo "✅ Cleanup completed (implement based on your storage)"
