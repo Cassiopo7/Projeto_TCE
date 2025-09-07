@@ -50,13 +50,13 @@ def render_visualizacao(municipios_selecionados, ano):
     visualizacao = []
     for municipio_id in municipios_selecionados:
         receitas = query_db(f"""
-            SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas 
-            FROM receita_detalhada 
+            SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas
+            FROM receita
             WHERE municipio_id = '{municipio_id}' AND ano = {int(ano)}
         """)
         despesas = query_db(f"""
-            SELECT MAX(valor_empenhado_ate_mes) AS total_despesas 
-            FROM despesa_detalhada 
+            SELECT MAX(valor_empenhado_ate_mes) AS total_despesas
+            FROM despesa
             WHERE municipio_id = '{municipio_id}' AND ano = {int(ano)}
         """)
         orcamento = query_db(f"""
@@ -111,13 +111,13 @@ def render_html(municipios_selecionados):
 
     for municipio_id in municipios_selecionados:
         receitas = query_db(f"""
-            SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas 
-            FROM receita_detalhada 
+            SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas
+            FROM receita
             WHERE municipio_id = '{municipio_id}' AND ano = 2024
         """)
         despesas = query_db(f"""
-            SELECT MAX(valor_empenhado_ate_mes) AS total_despesas 
-            FROM despesa_detalhada 
+            SELECT MAX(valor_empenhado_ate_mes) AS total_despesas
+            FROM despesa
             WHERE municipio_id = '{municipio_id}' AND ano = 2024
         """)
         orcamento = query_db(f"""

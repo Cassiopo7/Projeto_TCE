@@ -7,19 +7,19 @@ def render_content(municipio_id, ano):
     municipio_info = query_db(f"SELECT nome FROM municipio WHERE codigo_municipio = '{municipio_id}'")
     municipio_nome = municipio_info.iloc[0]['nome'] if not municipio_info.empty else "Município Não Encontrado"
 
-    # Queries para 2023
+    # Queries para ano atual
     receitas_ref = query_db_params(
         """
-        SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas 
-        FROM receita_detalhada 
+        SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas
+        FROM receita
         WHERE municipio_id = :municipio AND ano = :ano
         """,
         {"municipio": municipio_id, "ano": int(ano)}
     )
     despesas_ref = query_db_params(
         """
-        SELECT MAX(valor_empenhado_ate_mes) AS total_despesas 
-        FROM despesa_detalhada 
+        SELECT MAX(valor_empenhado_ate_mes) AS total_despesas
+        FROM despesa
         WHERE municipio_id = :municipio AND ano = :ano
         """,
         {"municipio": municipio_id, "ano": int(ano)}
@@ -33,20 +33,20 @@ def render_content(municipio_id, ano):
         {"municipio": municipio_id, "exercicio": int(f"{ano}00")}
     )
 
-    # Queries para 2024
+    # Queries para ano anterior
     ano_comp = int(ano) - 1
     receitas_prev = query_db_params(
         """
-        SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas 
-        FROM receita_detalhada 
+        SELECT MAX(valor_arrecadado_ate_mes) AS total_receitas
+        FROM receita
         WHERE municipio_id = :municipio AND ano = :ano
         """,
         {"municipio": municipio_id, "ano": ano_comp}
     )
     despesas_prev = query_db_params(
         """
-        SELECT MAX(valor_empenhado_ate_mes) AS total_despesas 
-        FROM despesa_detalhada 
+        SELECT MAX(valor_empenhado_ate_mes) AS total_despesas
+        FROM despesa
         WHERE municipio_id = :municipio AND ano = :ano
         """,
         {"municipio": municipio_id, "ano": ano_comp}
